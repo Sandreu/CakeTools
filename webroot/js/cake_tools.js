@@ -427,7 +427,7 @@ function fullscreen(target) {
             return val;
         } else if (jsElt.is('input') && jsElt.attr('type')=='checkbox') {
             if (isset(val)) {
-                if (val) jsElt.attr('checked', 'checked');
+                if (typeof(val)==='boolean' && val || val===jsElt.val()) jsElt.attr('checked', 'checked');
                 else jsElt.removeAttr('checked');
                 return this;
             }
