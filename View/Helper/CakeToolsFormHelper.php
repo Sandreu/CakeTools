@@ -88,7 +88,7 @@ class CakeToolsFormHelper extends FormHelper {
             }
             if (isset($options['label']) && is_string($options['label'])) $options['label'] = array('text'=>$options['label']);
             if (isset($options['div']) && is_string($options['div'])) $options['div'] = array('class'=>$options['div']);
-            $options = Set::merge(array(
+            $options = Set::merge(Set::merge(array(
                 'div'=>array(
                     'class'=>'control-group'
                 ),
@@ -100,7 +100,7 @@ class CakeToolsFormHelper extends FormHelper {
                 'class'=>'input-xlarge',
                 'format'=>array('before', 'label', 'between', 'input','error', 'after'),
                 'error' => array('attributes' => array('class' => 'error-message help-block'))
-            ), $this->_inputDefaults, $options);
+            ), $this->_inputDefaults), $options);
             if (!empty($options['div'])) {
                 $options['between'] .= '<div class="controls">';
                 $options['after'] .= '</div>';
