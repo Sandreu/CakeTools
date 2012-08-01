@@ -73,6 +73,120 @@ function fullscreen(target) {
     $(window).trigger('resize');
   }
 }
+
+/******************************************************************************
+ *
+ * Backbone
+ * 
+ ******************************************************************************/
+( function( undefined ) {
+    "use strict";
+
+    /**
+     * CommonJS shim
+     **/
+    var _ = window._,
+        Backbone = window.Backbone,
+        $ = window.$,
+        exports = window;
+
+    if (isset(Backbone) && !isset(Backbone.CakeModel)) {
+        Backbone.CakeModel = Backbone.RelationalModel.extend({
+            cakeModel: false,
+            rest : true,
+            sync: function () {
+                if (!this.rest) return true;
+                return Backbone.sync.apply(this, arguments);
+            },
+            set: function( key, value, options ) {
+
+                // Duplicate backbone's behavior to allow separate key/value parameters, instead of a single 'attributes' object
+                var attributes;
+                if (_.isObject( key ) || key == null) {
+                    attributes = key;
+                    options = value;
+                }
+                else {
+                    attributes = {};
+                    attributes[ key ] = value;
+                }
+
+                var new_attributes = {};
+                if (this.cakeModel && isset(attributes[this.cakeModel])) { 
+                    _.each(attributes, function (val, key) { if (key != this.cakeModel) new_attributes[key] = val; }, this);
+                    _.extend(new_attributes, attributes[this.cakeModel]);
+                } else {
+                    new_attributes = attributes;
+                }
+                return Backbone.RelationalModel.prototype.set.call(this, new_attributes, options);
+            }
+        });
+
+        Backbone.CakeView = Backbone.View.extend({
+            setFromForm: function (form, model) {
+                var data = form.serializeArray(),
+                    error = false;
+
+                if (!isset(model)) model = this.model;
+
+                $.each(data, function () {
+                    if (!model.set(this.name, this.value)) {
+                        fields.filter('[name='+this.name+']').parent().addClass('error');
+                        error = true;
+                    }
+                });
+                return !error;
+            },
+            fill: function () {
+                this.$(':input').each($.proxy(function (i, elt) {
+                    var $elt = $(elt);
+                    if ($elt.attr('type')=='hidden') {
+                        if (this.$(':input[name='+$elt.attr('name')+'][type=checkbox]').length) return;
+                    }
+                    $elt.val(this.model.get($elt.attr('name')));
+                }, this));
+            },
+            loading: function (btn) {
+                this.$('form').loading();
+                if (!isset(btn)) btn = this.$('[type=submit]');
+                if (isset(btn) && btn.hasClass('btn')) {
+                    if (!btn.data('loading-text')) btn.data('loading-text', 'En cours...');
+                    btn.button('loading');
+                }
+            },
+            loaded: function (btn) {
+                this.$('form').loaded();
+                if (!isset(btn)) btn = this.$('[type=submit]');
+                if (isset(btn) && btn.hasClass('btn')) btn.button('reset');
+            },
+            save: function (e) {
+                if (isset(e)) e.preventDefault();
+                var opts  = {},
+                    $target = $(e.target);
+
+                if (this.setFromForm(this.$('form'), this.model)) {
+                    this.loading();
+                    opts.success = $.proxy(function () {
+                        if (isset(this.saved))  this.saved();
+                        this.loaded();
+                        this.model.trigger('saved', this.model);
+                    }, this);
+                    opts.error = $.proxy(function () {
+                        this.loaded();
+                    }, this);
+                    
+                    this.model.save({}, opts);
+                }
+                return true;
+            },
+            render: function () {
+                this.$el.html(this.template(this.model.toJSON()));
+                this.$el.trigger('beautifier');
+            }
+        });
+        
+    }
+})();
 /******************************************************************************
  *
  * Tooltips
