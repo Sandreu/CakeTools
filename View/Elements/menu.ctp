@@ -65,6 +65,7 @@ if (!empty($menu)) : ?>
                 </ul>
                 <?php if (class_exists('AuthComponent')) : ?>
                     <ul class="nav pull-right">
+                        <li><a href="#" class="start-tour hide">?</a></li>
                         <li class="dropdown">
                             <?php 
                             $name = AuthComponent::user('complete_name');
