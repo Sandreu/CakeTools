@@ -2,7 +2,7 @@
 if (empty($menu)) $menu = $this->Session->read('Menu');
 
 if (!empty($menu)) : ?>
-    <div class="navbar navbar-fixed-top" style="margin-bottom:3px;">
+    <div class="navbar navbar-fixed-top navbar-inverse" style="margin-bottom:3px;">
         <div class="navbar-inner">
             <div class="container" style="width:100%;">
                 <?php if (isset($brand)) : ?>

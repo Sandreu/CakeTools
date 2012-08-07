@@ -431,7 +431,6 @@ function fullscreen(target) {
                         }
                     }
                 } else {
-                    console.log(document.location.href,data.redirect);
                     if (document.location.href==data.redirect) document.location.reload(true);
                     else document.location.href=data.redirect;
                 }
