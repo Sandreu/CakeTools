@@ -895,11 +895,11 @@ function fullscreen(target) {
   function init_ajax_tabs(e) {
     var context = $(e.target);
 
-    context.find('select.chosen').chosen();
+    context.find('select.select2').select2();
   }
 
   $(function () {
-      if (isset($.fn.chosen)) {
+      if (isset($.fn.select2)) {
         init_ajax_tabs({target:'body'});
         $('body').bind('beautifier', init_ajax_tabs);
       }

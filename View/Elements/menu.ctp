@@ -65,7 +65,7 @@ if (!empty($menu)) : ?>
                 </ul>
                 <?php if (class_exists('AuthComponent')) : ?>
                     <ul class="nav pull-right">
-                        <li><a href="#" class="start-tour hide">?</a></li>
+                        <li class="hide"><a href="#" class="start-tour">?</a></li>
                         <li class="dropdown">
                             <?php 
                             $name = AuthComponent::user('complete_name');
@@ -75,8 +75,8 @@ if (!empty($menu)) : ?>
                                 <li class="welcome">Bienvenue <?php echo $name; ?></li>
                                 <li class="email"><?php echo AuthComponent::user('email'); ?></li>
                                 <li class="divider"></li>
-                                <li><?php echo $this->Html->overlay('Mon compte&nbsp;&nbsp;<i class="icon-user"></i>', array('controller'=>'users', 'action'=>'account'), array('style'=>'float:left;')); ?></li>
-                                <li><?php echo $this->Html->link('<i class="icon-off"></i>&nbsp;&nbsp;Déconnexion', array('controller'=>'users', 'action'=>'logout'), array('style'=>'float:right; clear:none;')); ?></li>
+                                <li><?php echo $this->Html->overlay('Mon compte&nbsp;&nbsp;<i class="icon-user"></i>', array('controller'=>'users', 'action'=>'account'), array('style'=>'float:left; padding:3px 10px;')); ?></li>
+                                <li><?php echo $this->Html->link('<i class="icon-off"></i>&nbsp;&nbsp;Déconnexion', array('controller'=>'users', 'action'=>'logout'), array('style'=>'float:right; clear:none; padding:3px 10px;')); ?></li>
                             </ul>
                         </li>
                     </ul>
