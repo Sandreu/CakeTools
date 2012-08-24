@@ -210,7 +210,6 @@
           left: offset.left
         }).show();
 
-        console.log(this);
         $('html').on('keydown', this.keyHandler);
       }
 

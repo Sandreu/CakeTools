@@ -1,0 +1,69 @@
+
+.steps { 
+    list-style: none;
+    margin-left:0;
+    /*box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);*/
+    border:1px solid #ddd;
+    display: inline-block;
+    .border-radius(6px);
+    >li {
+        display: inline-block;
+        &:first-child>a { .border-left-radius(8px); }
+        &:last-child>a { .border-right-radius(8px); }
+        &:not(:first-child)>a {
+            border-left:0;
+            padding-left: 40px;
+        }
+        &:not(:last-child)>a {
+            &:after {
+                border-left-color: #f5f5f5;
+                border-width: 30px;
+                top: 50%;
+                margin-top: -30px;
+            }
+            &:hover:after { border-left-color: #eee; }
+            &:before {
+                border-left-color: #fff;
+                border-width: 34px;
+                top: 50%;
+                margin-top: -34px;
+            }
+        }
+        >a {
+            display: inline-block;
+            position: relative;
+            height: 60px;
+            background: #f5f5f5;
+            border: 4px solid #fff;
+            text-decoration: none;
+            padding:0 15px;
+            >p {
+                margin: 5px 0 10px 0;
+                font-weight:bold;
+                font-size:17px;
+            }
+            &:hover { background-color: #eee; }
+            &:after, &:before {
+                left: 100%;
+                border: solid transparent;
+                content: " ";
+                height: 0;
+                width: 0;
+                position: absolute;
+                pointer-events: none;
+                z-index: 1;
+            }
+        }
+        &.active {
+            >a { background-color: #08C; color:#fff; }
+            &:not(:last-child)>a:after { border-left-color: #08C; }
+        }
+        &.disabled {
+            >a { background-color: #fff; color:#aaa; }
+            &:not(:last-child)>a:after { border-left-color: #fff; }
+        }
+    }
+
+}
+//  *************IE***************
+*>html .steps>li, *+html .steps>li { float: left; }

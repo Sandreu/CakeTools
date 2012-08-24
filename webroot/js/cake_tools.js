@@ -119,6 +119,15 @@ function fullscreen(target) {
                     new_attributes = attributes;
                 }
                 return Backbone.RelationalModel.prototype.set.call(this, new_attributes, options);
+            },
+            save: function () {
+              var ajax = Backbone.RelationalModel.prototype.save.apply(this, arguments);
+              if (!ajax) return ajax;
+              else return ajax.success($.proxy(function (data) { this.trigger('saved'); }, this));
+            },
+            parse: function (response) {
+              if (isset(response.data)) return response.data;
+              else return response;
             }
         });
 
@@ -147,7 +156,7 @@ function fullscreen(target) {
                 }, this));
             },
             loading: function (btn) {
-                this.$('form').loading();
+                this.$el.loading();
                 if (!isset(btn)) btn = this.$('[type=submit]');
                 if (isset(btn) && btn.hasClass('btn')) {
                     if (!btn.data('loading-text')) btn.data('loading-text', 'En cours...');
@@ -155,29 +164,32 @@ function fullscreen(target) {
                 }
             },
             loaded: function (btn) {
-                this.$('form').loaded();
+                this.$el.loaded();
                 if (!isset(btn)) btn = this.$('[type=submit]');
                 if (isset(btn) && btn.hasClass('btn')) btn.button('reset');
             },
             save: function (e) {
                 if (isset(e)) e.preventDefault();
-                var opts  = {},
-                    $target = $(e.target);
 
                 if (this.setFromForm(this.$('form'), this.model)) {
-                    this.loading();
-                    opts.success = $.proxy(function () {
-                        if (isset(this.saved))  this.saved();
-                        this.loaded();
-                        this.model.trigger('saved', this.model);
-                    }, this);
-                    opts.error = $.proxy(function () {
-                        this.loaded();
-                    }, this);
-                    
-                    this.model.save({}, opts);
+                  this.simple_save();
                 }
                 return true;
+            },
+            simple_save: function () {
+                var opts  = {};
+
+                this.loading();
+                opts.success = $.proxy(function () {
+                    if (isset(this.saved))  this.saved();
+                    this.loaded();
+                    //this.model.trigger('saved', this.model);
+                }, this);
+                opts.error = $.proxy(function () {
+                    this.loaded();
+                }, this);
+                
+                this.model.save({}, opts);
             },
             render: function () {
                 this.$el.html(this.template(this.model.toJSON()));
@@ -421,7 +433,6 @@ function fullscreen(target) {
                         }
                     }
                 } else {
-                    console.log(document.location.href,data.redirect);
                     if (document.location.href==data.redirect) document.location.reload(true);
                     else document.location.href=data.redirect;
                 }
