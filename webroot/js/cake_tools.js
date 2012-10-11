@@ -194,6 +194,8 @@ function fullscreen(target) {
             render: function () {
                 this.$el.html(this.template(this.model.toJSON()));
                 this.$el.trigger('beautifier');
+
+                return this;
             }
         });
         
@@ -870,7 +872,7 @@ function fullscreen(target) {
         $this.trigger('btnAjaxSuccess', [data]);
         if ($this.attr('data-ajax-success')) eval($this.attr('data-ajax-success'));
     }).complete(function () { 
-        if ($this.hasClass('.btn')) $this.button('reset');
+        if ($this.hasClass('btn')) $this.button('reset');
         $this.data('is_ajaxing', false);
     });
 
@@ -895,7 +897,7 @@ function fullscreen(target) {
   function init_ajax_tabs(e) {
     var context = $(e.target);
 
-    context.find('select.select2').select2();
+    context.find('select.chosen, select.select2').select2();
   }
 
   $(function () {
