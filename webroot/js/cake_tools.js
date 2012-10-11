@@ -540,13 +540,13 @@ function fullscreen(target) {
         }
         
         if (jsElt.is('select') && typeof(val)!='undefined') {
-            jsElt.children('option:selected').removeAttr('selected');
+            jsElt.find('option:selected').removeAttr('selected');
             if (typeof(val)=='object'&&(val instanceof Array)) {
                 $.each(val, function() {
-                    jsElt.children('option[value="'+this+'"]').attr('selected', 'selected');
+                    jsElt.find('option[value="'+this+'"]').attr('selected', 'selected');
                 })
             } else {
-                var opt = jsElt.children('option[value="'+val+'"]');
+                var opt = jsElt.find('option[value="'+val+'"]');
                 opt.attr('selected', 'selected');
             }
             return val;
