@@ -11,6 +11,7 @@ App::uses('Controller', 'Controller');
 class CakeToolsController extends Controller {
     public $ssmenu = array();
     
+    public $rest = false;
     protected $json = array();
     
 /**
@@ -108,6 +109,45 @@ class CakeToolsController extends Controller {
             $this->data = $this->{$this->modelClass}->read(null, $id);
         }
         return false;
+    }
+
+    protected function _rest($id=null, $options = array()) {
+        $default = array(
+            'post'=>true,
+            'put'=>true,
+            'delete'=>true,
+            'get' => true
+        );
+        $options = array_merge($default, $options);
+
+        $this->autoRender = false;
+
+        if ($this->request->is('post') && $options['post'] || 
+            $this->request->is('put')  && $options['put']) {
+            if ($this->{$this->modelClass}->save($this->data)) {
+                $this->{$this->modelClass}->recursive = -1;
+                $this->json['data'] = $this->{$this->modelClass}->read();
+                return $this->{$this->modelClass}->id;
+            } else {
+                $this->Flashes->add('error', 'Mettre détails des erreurs');
+                return false;
+            }
+        } elseif ($this->request->is('delete') && $options['delete']) {
+            if (!$this->{$this->modelClass}->delete($id)) return true;
+        } elseif ($this->request->is('get') && !empty($options['get'])) {
+            $get =  array();
+            if (is_array($options['get'])) $get = $options['get'];
+            $get['conditions'][$this->modelClass . '.id'] = $id;
+            $this->json['data'] = $this->{$this->modelClass}->find('first', $get);
+            if (empty($this->json['data'])) throw new NotFoundException();
+            return;
+        }
+        throw new CakeException();
+    }
+    public function rest($id=null) {
+        if (!$this->rest) throw new NotFoundException();
+        
+        $this->_rest($id);
     }
     
     protected function _delete($id) {
