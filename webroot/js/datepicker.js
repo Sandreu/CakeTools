@@ -73,17 +73,21 @@
           .addClass('datepicker')
           .append($nav, $calendar);
 
-        this.$block = $('<div class="input-append dropdown"></div>');
+        this.$block = $('<div class="dropdown pull-left" style="margin-right:4px;"></div>');
         this.$block.insertAfter(this.$el);
 
         this.$el.detach();
         this.$el.attr('placeholder', this.format);
         this.$el.appendTo(this.$block);
-
-        this.$btn = $('<button class="btn dropdown-toggle" type="button" data-toggle="dropdown">&nbsp;'+this.btn_label+'</button>');
+        
+        if (this.show_btns != false) {
+          this.$btn = $('<button class="btn dropdown-toggle" type="button" data-toggle="dropdown">&nbsp;'+this.btn_label+'</button>');
+          this.$block.addClass('input-append');
+          this.$block.append(this.$btn);
+        }
         this.$picker.addClass('dropdown-menu');
 
-        this.$block.append(this.$btn).append(this.$picker);
+        this.$block.append(this.$picker);
         this.$block.bind('opened', $.proxy(this.shown, this));
         this.$block.bind('closed', $.proxy(this.hidden, this));
         this.$el.addClass('input-small');
@@ -94,7 +98,7 @@
 
         this.$el
           .attr('data-toggle', 'dropdown')
-          .change($.proxy(function() { this.selectDate(); }, this));
+          .change($.proxy(function () { this.selectDate() }, this))
 
         this.selectDate();
         this.hide();
@@ -202,11 +206,11 @@
         $('html').off('keydown', this.keyHandler);
     },
     show: function() {
-        if (!this.$block.hasClass('open')) this.$btn.click();
+        if (!this.$block.hasClass('open')) this.$el.dropdown('toggle');
         return false;
     },
     hide: function() {
-        if (this.$block.hasClass('open')) this.$btn.click();
+        if (this.$block.hasClass('open')) this.$el.dropdown('toggle');
         return false;
     },
     keyHandler: function(e) {
@@ -297,7 +301,7 @@
 
   TimePicker.prototype = {
     init: function() {
-      this.$block = $('<div class="input-append"></div>');
+      this.$block = $('<div class="dropdown pull-left" style="margin-right:4px;"></div>');
       this.$block.insertAfter(this.$el);
 
       this.$el.detach();
@@ -305,15 +309,20 @@
       this.$el.appendTo(this.$block);
 
       this.$block.append(this.dropdown());
-      this.$el.addClass('input-mini');
+      this.$el.addClass('input-mini')
+      this.$el.attr('data-toggle', 'dropdown');
       this.$block.addClass('timepicker');
     },
     dropdown: function () {
-      var span = $('<span class="dropdown"></span>');
-      this.$btn = $('<button class="btn" type="button" data-toggle="dropdown">&nbsp;'+this.btn_label+'</button>');
-      this.$btn.data('toggle', 'dropdown');
-      this.$btn.addClass('dropdown-toggle');
-      this.$timeList = $('<ul class="dropdown-menu pull-right right" style="margin-top:10px"></ul>');
+      var span = $('<span></span>');
+      if (this.show_btns != false) {
+        this.$btn = $('<button class="btn" type="button" data-toggle="dropdown">&nbsp;'+this.btn_label+'</button>');
+        // this.$btn.data('toggle', 'dropdown');
+        this.$btn.addClass('dropdown-toggle');
+        this.$block.addClass('input-append');
+        span.append(this.$btn);
+      }
+      this.$timeList = $('<ul class="dropdown-menu pull-right"></ul>');
 
       var self = this;
       $.each(this.list, function (i, el) {
@@ -323,7 +332,6 @@
         li.append(a);
         self.$timeList.append(li);
       });
-      span.append(this.$btn);
       span.append(this.$timeList);
       this.$timeList.on('click', 'a', $.proxy(this.clickList, this));
       return span;
@@ -368,6 +376,7 @@
 
       this.$container.insertAfter(this.$el);
 
+      this.datepicker.show_btns = this.timepicker.show_btns = this.show_btns;
       this.$date.datepicker(this.datepicker);
       this.$time.timepicker(this.timepicker);
 
@@ -462,22 +471,26 @@
     startOfWeek: 1,
     btn_label : '<i class="icon-calendar"></i>',
     appendTo: 'body',
-    format: 'YYYY-MM-DD'
+    format: 'YYYY-MM-DD',
+    show_btns : true
   };
 
   $.fn.timepicker.defaults = {
     btn_label : '<i class="icon-time"></i>',
     list: {
       '09:00': 'Matin',
+      '12:00': 'Midi',
       '14:00': 'Après-midi',
       '18:00': 'Fin de journée'
     },
-    format: 'HH:mm'
+    format: 'HH:mm',
+    show_btns : true
   };
 
   $.fn.datetimepicker.defaults = {
     format: 'YYYY-MM-DD HH:mm',
     datepicker : {format: 'DD MMM YYYY'},
-    timepicker : {}
+    timepicker : {},
+    show_btns : false
   };
 }( window.jQuery || window.ender );

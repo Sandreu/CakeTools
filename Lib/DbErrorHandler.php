@@ -17,6 +17,7 @@ class DbErrorHandler extends ErrorHandler {
 
     public static function save($data) {
         if (empty(self::$ErrorLog)) self::$ErrorLog = ClassRegistry::init('ErrorLog');
+        self::$ErrorLog->getDataSource()->rollback();
         return self::$ErrorLog->save($data);
     }
     
@@ -46,9 +47,8 @@ class DbErrorHandler extends ErrorHandler {
             'user_id' => $auth
         );
         
+
         if ($exception instanceof PDOException) {
-            if (empty(self::$ErrorLog)) self::$ErrorLog = ClassRegistry::init('ErrorLog');
-            self::$ErrorLog->getDataSource()->rollback();
             $save['trace'] .= '<br /><br /><b>Requête : </b>' . $exception->queryString;
         }
         

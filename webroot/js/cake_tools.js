@@ -203,7 +203,212 @@ function fullscreen(target) {
                 return this;
             }
         });
+
+
+        //TWITTER BOOTSTRAP TEMPLATES
+        //Requires Bootstrap 2.x
+        Backbone.Form.setTemplates({
+
+          //HTML
+          form: '\
+            <form class="form-horizontal">{{fieldsets}}</form>\
+          ',
+
+          fieldset: '\
+            <fieldset>\
+              <legend>{{legend}}</legend>\
+              {{fields}}\
+            </fieldset>\
+          ',
+
+          field: '\
+            <div class="control-group field-{{key}}">\
+              <label class="control-label" for="{{id}}">{{title}}</label>\
+              <div class="controls">\
+                {{editor}}\
+                <div class="help-inline">{{error}}</div>\
+              </div>\
+            </div>\
+          ',
+
+          naked: '\
+            <span class="field-{{key}}">\
+              <label for="{{id}}">{{title}}</label>\
+              {{editor}}\
+              <div class="help-inline">{{error}}</div>\
+            </span>\
+          ',
+          
+          checkbox : '\
+            <div class="control-group field-{{key}}">\
+              <div class="controls">\
+                <input type="hidden" name="{{key}}" value="0" />\
+                <label class="checkbox" for="{{id}}">\
+                  {{editor}}\
+                  {{title}}\
+                  <div class="help-inline">{{error}}</div>\
+                </label>\
+              </div>\
+            </div>\
+          ',
+
+          nestedField: '\
+            <div class="field-{{key}}">\
+              <div title="{{title}}" class="input-xlarge">{{editor}}\
+                <div class="help-inline">{{error}}</div>\
+              </div>\
+            </div>\
+          ',
+
+          list: '\
+            <div class="bbf-list">\
+              <ul class="unstyled clearfix">{{items}}</ul>\
+              <button class="btn bbf-add" data-action="add">Add</button>\
+            </div>\
+          ',
+
+          listItem: '\
+            <li class="clearfix">\
+              <div class="pull-left">{{editor}}</div>\
+              <button type="button" class="btn bbf-del" data-action="remove">&times;</button>\
+            </li>\
+          ',
+
+          'list.Modal': '\
+            <div class="bbf-list-modal">\
+              {{summary}}\
+            </div>\
+          '
+        }, {
         
+          //CLASSNAMES
+          error: 'error' //Set on the field tag when validation fails
+        });
+
+        Backbone.Form.editors.Date = Backbone.Form.editors.Text.extend({
+            picker : 'date',
+            setValue : function (value) {
+              var format = $.fn[this.picker + 'picker'].defaults.format;
+              this.$el.val(moment(value).format(format));
+            },
+            render: function() {
+              this.setValue(this.value);
+              this.$el.attr('data-picker', this.picker);
+              return this;
+            }
+        });
+        Backbone.Form.editors.DateTime = Backbone.Form.editors.Date.extend({
+            picker : 'datetime'
+        });
+        Backbone.Form.editors.Radio = Backbone.Form.editors.Radio.extend({
+          tagName : 'div',
+          events: {
+            'change input[type=radio]:checked': function() {
+              this.trigger('change', this);
+            },
+            'focus input[type=radio]': function() {
+              if (this.hasFocus) return;
+              this.trigger('focus', this);
+            },
+            'blur input[type=radio]': function() {
+              if (!this.hasFocus) return;
+              var self = this;
+              setTimeout(function() {
+                if (self.$('input[type=radio]:focus')[0]) return;
+                self.trigger('blur', self);
+              }, 0);
+            }
+          },
+          _arrayToHtml: function(array) {
+            var html = [];
+            var self = this;
+
+            //Generate HTML
+            _.each(array, function(option, index) {
+              if (!_.isObject(option)) {
+                option = {
+                  val: option,
+                  label: option
+                }
+              }
+              option.val = (option.val || option.val === 0) ? option.val : '';
+              var item = '<label class="radio">';
+              item += '<input type="radio" name="'+self.id+'" id="'+self.id+'-'+index+'" value="'+option.val+'">'
+              item += '<span class="label-'+index+'">' + option.label + '</span>';
+              item += '</label>';
+              html.push(item);
+            });
+
+            return html.join('');
+          }
+        });
+
+
+        Backbone.Form.editors.RadioBtns = Backbone.Form.editors.Select.extend({
+          tagName : 'div',
+
+          events: {
+            'change input': function(event) {
+              this.trigger('change', this);
+            },
+            'focus button':  function(event) {
+              this.trigger('focus', this);
+            },
+            'blur button':   function(event) {
+              this.trigger('blur', this);
+            }
+          },
+
+          initialize: function(options) {
+            Backbone.Form.editors.Select.prototype.initialize.call(this, options);
+
+            this.$el.removeAttr('name');
+            //this.$el.removeAttr('id');
+          },
+
+          getValue: function() {
+            return this.$('input').val();
+          },
+
+          setValue: function(value) {
+            return this.$('input').val(value);
+          },
+
+          focus: function() {
+            if (this.hasFocus) return;
+
+            this.$('button:first').focus();
+          },
+          
+          blur: function() {
+            if (!this.hasFocus) return;
+
+            this.$('button:focus').blur();
+          },
+
+          _arrayToHtml: function(array) {
+            var html = ['<input type="hidden" name="'+this.getName()+'" id="'+this.id+'-f">'];
+            var self = this;
+
+            html.push('<div class="btn-group" data-toggle="buttons-radio" data-target="#'+this.id+'-f">');
+            //Generate HTML
+            _.each(array, function(option, index) {
+              if (!_.isObject(option)) {
+                option = {
+                  val: option,
+                  label: option
+                }
+              }
+              option.val = (option.val || option.val === 0) ? option.val : '';
+              var item = '<button id="'+self.id+'-'+index+'" class="btn label-'+index+'" data-value="'+option.val+'" type="button">'+option.label+'</button>';
+              html.push(item);
+            });
+
+            html.push('</div>');
+
+            return html.join('');
+          }
+        });
     }
 })();
 /******************************************************************************
@@ -547,13 +752,13 @@ function fullscreen(target) {
         }
         
         if (jsElt.is('select') && typeof(val)!='undefined') {
-            jsElt.children('option:selected').removeAttr('selected');
+            jsElt.find('option:selected').removeAttr('selected');
             if (typeof(val)=='object'&&(val instanceof Array)) {
                 $.each(val, function() {
-                    jsElt.children('option[value="'+this+'"]').attr('selected', 'selected');
+                    jsElt.find('option[value="'+this+'"]').attr('selected', 'selected');
                 })
             } else {
-                var opt = jsElt.children('option[value="'+val+'"]');
+                var opt = jsElt.find('option[value="'+val+'"]');
                 opt.attr('selected', 'selected');
             }
             return val;

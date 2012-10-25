@@ -32,6 +32,7 @@ class DbConsoleErrorHandler extends ConsoleErrorHandler {
 
     public function save($data) {
         if (empty($this->ErrorLog)) $this->ErrorLog = ClassRegistry::init('ErrorLog');
+        self::$ErrorLog->getDataSource()->rollback();
         return $this->ErrorLog->save($data);
     }
     
