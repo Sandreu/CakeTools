@@ -20,42 +20,46 @@ class DbErrorHandler extends ErrorHandler {
         return self::$ErrorLog->save($data);
     }
     
+    public static function dbHandleException(Exception $exception) {
+        $debug = Configure::read('debug');
+        if (($exception instanceof MissingControllerException || $exception instanceof MissingPluginException) && !$debug) {
+            echo 'Cette url n\'est pas valide.';
+            exit(0);
+        }
+        $url = self::getUrl();
+
+        if (class_exists('AuthComponent'))
+            $auth = AuthComponent::user('id');
+        else
+            $auth = null;
+
+        $message = sprintf("<b>[%s] %s</b><br />%s\n",
+                get_class($exception),
+                $exception->getMessage(),
+                $exception->getTraceAsString()
+        );
+        $save = array(
+            'url' => $url,
+            'params' => json_encode($_REQUEST),
+            'type' => get_class($exception),
+            'trace' => $message,
+            'user_id' => $auth
+        );
+        
+        if ($exception instanceof PDOException) {
+            if (empty(self::$ErrorLog)) self::$ErrorLog = ClassRegistry::init('ErrorLog');
+            self::$ErrorLog->getDataSource()->rollback();
+            $save['trace'] .= '<br /><br /><b>Requête : </b>' . $exception->queryString;
+        }
+        
+        if (!self::save($save)) {
+            throw new CakeException('Erreur lors de la sauvegarde de l\'erreur');
+        }
+    }
+
     public static function handleException(Exception $exception) {
         try {
-            $debug = Configure::read('debug');
-            if (($exception instanceof MissingControllerException || $exception instanceof MissingPluginException) && !$debug) {
-                echo 'Cette url n\'est pas valide.';
-                exit(0);
-            }
-            $url = self::getUrl();
-
-            if (class_exists('AuthComponent'))
-                $auth = AuthComponent::user('id');
-            else
-                $auth = null;
-
-            $message = sprintf("<b>[%s] %s</b><br />%s\n",
-                    get_class($exception),
-                    $exception->getMessage(),
-                    $exception->getTraceAsString()
-            );
-            $save = array(
-                'url' => $url,
-                'params' => json_encode($_REQUEST),
-                'type' => get_class($exception),
-                'trace' => $message,
-                'user_id' => $auth
-            );
-            
-            if ($exception instanceof PDOException) {
-                if (empty(self::$ErrorLog)) self::$ErrorLog = ClassRegistry::init('ErrorLog');
-                self::$ErrorLog->getDataSource()->rollback();
-                $save['trace'] .= '<br /><br /><b>Requête : </b>' . $exception->queryString;
-            }
-            
-            if (!self::save($save)) {
-                throw new CakeException('Erreur lors de la sauvegarde de l\'erreur');
-            }
+            self::dbHandleException($exception);
 
             return parent::handleException($exception);
         } catch (Exception $e) {

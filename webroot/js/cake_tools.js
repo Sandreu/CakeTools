@@ -1,3 +1,8 @@
+_.templateSettings = {
+    interpolate: /\{\{(.+?)\}\}/g,
+    evaluate: /<%([\s\S]+?)%>/g
+}
+
 function message(type, content, persist) {
   if (type=='valid') type='success';
     var elt = $('<div class="alert fade in alert-'+type+'" style="display:none;"><a class="close" href="#">&times;</a></div>'),
