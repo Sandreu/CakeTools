@@ -48,23 +48,15 @@ class EmailsPanel extends DebugPanel {
  */
 	public $output = '';
 
-/**
- * startup
- *
- * @return void
- */
-	function startup(&$controller) {
-		return parent::startup($controller);
-	}
 
 /**
  * beforeRender Callback
  *
  * @return array
  */
-	function beforeRender(&$controller) {
-                $out = CakeSession::read('Emails');
-                $this->title .= ' ('.count($out).')';
+	public function beforeRender(Controller $controller) {
+        $out = CakeSession::read('Emails');
+        $this->title .= ' ('.count($out).')';
 		return $out;
 	}
 }

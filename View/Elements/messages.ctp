@@ -15,7 +15,7 @@
             echo '</div>';
         }
 
-        SessionComponent::delete('Message');
+        CakeSession::delete('Message');
     }
     ?>
 </div>
