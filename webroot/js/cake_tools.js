@@ -204,6 +204,117 @@ function fullscreen(target) {
             }
         });
 
+        Backbone.ModalForm = Backbone.CakeView.extend({
+            title : 'Titre',
+            okText : 'Sauvegarder',
+            cancelText : 'Retour',
+            extraButtons : {},
+            _modal : false,
+            _form : false,
+            originalDatas : {},
+            loadModal : function () {
+                var modal = new Backbone.BootstrapModal({
+                    title : this.title,
+                    okText : this.okText,
+                    cancelText: this.cancelText,
+                    content:this._form
+                });
+                modal.render();
+
+                if (!_.isEmpty(this.extraButtons)) {
+                  var tmpl = _.template('<a href="javascript:void(0);" class="btn btn-{{type}}">{{title}}</a>'),
+                    self = this;
+                  _.each(this.extraButtons, function (props) {
+                    var btn = $(tmpl(props));
+                    btn.on('click', $.proxy(self[props.click], self));
+                    if (isset(props.pos) && props.pos == 'after') modal.$('.modal-footer').append(btn);
+                    else if (isset(props.pos) && props.pos == 'between') modal.$('.ok').before(btn);
+                    else modal.$('.modal-footer').prepend(btn);
+                  });
+                }
+
+                modal.on('shown', this.setFocus, this);
+                modal.on('cancel', this.canceled, this);
+                modal.on('ok', this.commit, this);
+
+                this._modal = modal;
+            },
+            setFocus : function () {
+                var input = this.$('input:first');
+                input.focus();
+                if (this.model.isNew()) input.select();
+            },
+            initialize : function () {
+                this.loadModal();
+                this.$el = this._modal.$el;
+                this.$el.on('hidden', $.proxy(function () { this.model.off('destroy', this.destroyed, this); }, this));
+                _.bindAll(this);
+            },
+            loadForm : function () {
+                var form = new Backbone.Form({
+                    model : this.model
+                });
+                form.render();
+
+                this.$('.modal-body').html(form.$el);
+
+                this._form = form;
+            },
+            render : function () {
+                this.originalDatas = this.model.toJSON();
+                this.model.on('destroy', this.destroyed, this);
+
+                if (this._form) {
+                    this._form.remove();
+                    delete this._form;
+                }
+                this.loadForm();
+
+                this.$el.appendTo('body');
+                this._form.$el.trigger('beautifier');
+
+                this.initForm();
+                
+                this._modal.open();
+                
+                return this;
+            },
+            initForm : function () {},
+            commit : function () {
+                var a = this._form.commit(),
+                    self = this;
+                if (!isset(a)) {
+                    this.model.save({}, {
+                        success : function () { self._modal.close(); },
+                        error : function (model, xhr) {
+                            var data = eval('(' + xhr.responseText + ')');
+                            if (isset(data)) {
+                                if (isset(data.val_errors)) {
+                                    var msg_errors = '';
+                                    _.each(data.val_errors, function (val, key) {
+                                        if (isset(self._form.fields[key])) self._form.fields[key].setError(val[0]);
+                                        else msg_errors += val[0] + '<br />';
+                                    });
+                                    if (msg_errors!=='') message('error', 'Erreur lors de la sauvegarde');
+                                }
+                            } else {
+                                message('error', 'Erreur lors de la requette')
+                            }
+                        }
+                    });
+                }
+            },
+            canceled : function () {
+                if (this.model.isNew()) {
+                    this.model.destroy();
+                } else {
+                    this.model.set(this.originalDatas);
+                }
+            },
+            destroyed : function () {
+                this._modal.close();
+            }
+        });
 
         //TWITTER BOOTSTRAP TEMPLATES
         //Requires Bootstrap 2.x
@@ -657,7 +768,7 @@ function fullscreen(target) {
         }
     });
     $(document).ajaxError(function(event, jqXHR) {
-        if (jqXHR.status != 0) message('error', 'Erreur lors de la requête');
+        if (jqXHR.status != 0 && jqXHR.status != 403) message('error', 'Erreur lors de la requête');
     });
 
     $.ajaxSetup({
