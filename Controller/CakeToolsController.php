@@ -129,9 +129,10 @@ class CakeToolsController extends Controller {
 
         if ($this->request->is('post') && $options['post'] || 
             $this->request->is('put')  && $options['put']) {
-            if ($this->{$model}->save($this->data)) {
+            $datas = $this->{$model}->save($this->data);
+            if (!empty($datas)) {
                 $this->{$model}->recursive = -1;
-                $this->json['data'] = $this->{$model}->read();
+                $this->json['data'] = $datas;
                 return $this->{$model}->id;
             } else {
                 $this->response->statusCode(403);
