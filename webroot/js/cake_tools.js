@@ -398,10 +398,6 @@ function fullscreen(target) {
 
         Backbone.Form.editors.Date = Backbone.Form.editors.Text.extend({
             picker : 'date',
-            setValue : function (value) {
-              var format = $.fn[this.picker + 'picker'].defaults.format;
-              this.$el.val(moment(value).format(format));
-            },
             render: function() {
               this.setValue(this.value);
               this.$el.attr('data-picker', this.picker);
