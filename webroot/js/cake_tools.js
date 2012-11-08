@@ -728,6 +728,8 @@ function fullscreen(target) {
             message('info', 'La réponse n\'est pas reconnue');
             return;
         }
+        if (xhr.responseText=='') return;
+        
         var data = eval('(' + xhr.responseText + ')');
         if (isset(data)) {
             if (isset(data.redirect)) {
