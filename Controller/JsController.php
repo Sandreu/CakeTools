@@ -16,11 +16,21 @@ class JsController extends AppController {
 	public function index() {
 		$path = implode('/', $this->params['pass']);
 		$file = new File('../ViewJs/'.$path);
+
 		if (!$file->exists()) throw new NotFoundException();
 		
 		if (Configure::read('debug')==0) DbErrorHandler::dbHandleException(new CakeException('Compiler les fichiers JS!'));
 
-		echo $file->read();
-		exit;
+        $this->response->type('javascript');
+        $this->response->body($file->read());
+		$this->response->compress();
+
+        $this->autoRender = false;
+	}
+
+	public function error() {
+		pr($this->request);
+
+        $this->autoRender = false;
 	}
 }

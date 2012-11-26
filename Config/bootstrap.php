@@ -3,17 +3,23 @@
 if (Configure::read('debug')>0) {
 	App::uses('File', 'Utility');
 	App::uses('Folder', 'Utility');
-	$fol = new Folder('../ViewJs');
-	$files = $fol->find('.*');
+	$js = new Folder('js');
+	$files = $js->findRecursive();
+	$ref = 0;
 	foreach ($files as $f) {
-		$file = new File('../ViewJs/' . $f);
-		$ref = $file->lastChange();
+		$file = new File($f);
+		if ($file->lastChange()>$ref) $ref = $file->lastChange();
+	}
 
-		$file = new File('js/' . $f);
-		$comp_ref = $file->lastChange();
+	$src = new Folder('../ViewJs');
+	$files = $src->findRecursive();
+	$news = 0;
+	foreach ($files as $f) {
+		$file = new File($f);
+		if ($file->lastChange()>$news) $news = $file->lastChange();
+	}
 
-		if ($file->exists() && $comp_ref<$ref+10) {
-			if (!$file->delete()) DbErrorHandler::dbHandleException(new CakeException('Impossible de supprimer le JS expiré'));
-		}
+	if ($news>$ref+60) {
+		throw new CakeException('Attention! JS plus récent détecté');
 	}
 }
