@@ -117,6 +117,7 @@ class CakeToolsController extends Controller {
             'put'=>true,
             'delete'=>true,
             'get' => true,
+            'fetch' => false,
             'model'=>$this->modelClass
         );
         $options = array_merge($default, $options);
@@ -141,20 +142,39 @@ class CakeToolsController extends Controller {
             }
         } elseif ($this->request->is('delete') && $options['delete']) {
             if ($this->{$model}->delete($id)) return true;
-        } elseif ($this->request->is('get') && !empty($options['get'])) {
-            $get =  array();
-            if (is_array($options['get'])) $get = $options['get'];
-            $get['conditions'][$model . '.id'] = $id;
-            $this->json['data'] = $this->{$model}->find('first', $get);
-            if (empty($this->json['data'])) throw new NotFoundException();
-            return;
+        } elseif ($this->request->is('get')) {
+                pr($options);
+            if (!empty($options['get'])) {
+                $get =  array();
+                if (is_array($options['get'])) $get = $options['get'];
+                $get['conditions'][$model . '.id'] = $id;
+                $this->json['data'] = $this->{$model}->find('first', $get);
+                if (empty($this->json['data'])) throw new NotFoundException();
+                return;
+            } else if (!empty($options['fetch'])) {
+                if (!is_string($options['fetch'])) $options['fetch'] = '_fetchFilters';
+                if (!method_exists($this, $options['fetch'])) throw new NotFoundException('Fetch non défini');
+
+                $fetch = $this->{$options['fetch']}();
+                $this->json['data'] = $this->{$model}->find('first', $fetch);
+                if (empty($this->json['data'])) throw new NotFoundException();
+            }
         }
         throw new CakeException('Requête non validée');
     }
+
     public function rest($id=null) {
         if (!$this->rest) throw new NotFoundException();
         
         $this->_rest($id);
+    }
+
+    protected function _fetchFilters() {
+        $options = array();
+        if (isset($this->request->data->query['filters'])) {
+            $options['conditions'][] = $this->request->data->query['filters'];
+        }
+        return $options;
     }
     
     protected function _delete($id) {

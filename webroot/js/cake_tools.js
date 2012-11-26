@@ -284,9 +284,8 @@ function fullscreen(target) {
                 var a = this._form.commit(),
                     self = this;
                 if (!isset(a)) {
-                    this.model.save({}, {
-                        success : function () { self._modal.close(); },
-                        error : function (model, xhr) {
+                    this.model.save().success(function () { self._modal.close(); })
+                        .error(function (model, xhr) {
                             var data = eval('(' + xhr.responseText + ')');
                             if (isset(data)) {
                                 if (isset(data.val_errors)) {
@@ -300,8 +299,7 @@ function fullscreen(target) {
                             } else {
                                 message('error', 'Erreur lors de la requette')
                             }
-                        }
-                    });
+                        });
                 }
             },
             canceled : function () {
@@ -728,6 +726,8 @@ function fullscreen(target) {
             message('info', 'La réponse n\'est pas reconnue');
             return;
         }
+        if (xhr.responseText=='') return;
+        
         var data = eval('(' + xhr.responseText + ')');
         if (isset(data)) {
             if (isset(data.redirect)) {
