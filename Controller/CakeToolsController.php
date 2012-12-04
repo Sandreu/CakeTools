@@ -75,6 +75,8 @@ class CakeToolsController extends Controller {
             if (Configure::read('debug') && empty($this->json['no_more']) && $this->{$this->modelClass}->validationErrors) $this->json['val_errors'] = $this->{$this->modelClass}->validationErrors;
             
             $this->set('json', $this->json);
+
+            $this->response->type('json');
             $this->render('/Elements/ajax', false);
         }
         return $tmp;
