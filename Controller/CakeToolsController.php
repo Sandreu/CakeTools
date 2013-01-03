@@ -122,6 +122,7 @@ class CakeToolsController extends Controller {
             'fetch' => false,
             'model'=>$this->modelClass
         );
+        if (is_array($this->rest)) $default = array_merge($default, $this->rest);
         $options = array_merge($default, $options);
 
         $model = $options['model'];
@@ -134,7 +135,6 @@ class CakeToolsController extends Controller {
             $this->request->is('put')  && $options['put']) {
             $datas = $this->{$model}->save($this->data);
             if (!empty($datas)) {
-                $this->{$model}->recursive = -1;
                 $this->json['data'] = $datas;
                 return $this->{$model}->id;
             } else {
@@ -145,8 +145,7 @@ class CakeToolsController extends Controller {
         } elseif ($this->request->is('delete') && $options['delete']) {
             if ($this->{$model}->delete($id)) return true;
         } elseif ($this->request->is('get')) {
-                pr($options);
-            if (!empty($options['get'])) {
+            if (!empty($options['get']) && $id) {
                 $get =  array();
                 if (is_array($options['get'])) $get = $options['get'];
                 $get['conditions'][$model . '.id'] = $id;
@@ -154,12 +153,18 @@ class CakeToolsController extends Controller {
                 if (empty($this->json['data'])) throw new NotFoundException();
                 return;
             } else if (!empty($options['fetch'])) {
-                if (!is_string($options['fetch'])) $options['fetch'] = '_fetchFilters';
+                if (!is_string($options['fetch'])) $options['fetch'] = '_fetchOptions';
                 if (!method_exists($this, $options['fetch'])) throw new NotFoundException('Fetch non défini');
 
                 $fetch = $this->{$options['fetch']}();
-                $this->json['data'] = $this->{$model}->find('first', $fetch);
-                if (empty($this->json['data'])) throw new NotFoundException();
+                $this->json['data'] = $this->{$model}->find('all', $fetch);
+                return;
+            } else if (!empty($options['paginate'])) {
+                if (!is_string($options['paginate'])) $options['paginate'] = '_restPaginate';
+                if (!method_exists($this, $options['paginate'])) throw new NotFoundException('Paginate non défini');
+
+                $this->json = $this->{$options['paginate']}();
+                return;
             }
         }
         throw new CakeException('Requête non validée');
@@ -171,12 +176,29 @@ class CakeToolsController extends Controller {
         $this->_rest($id);
     }
 
-    protected function _fetchFilters() {
+    protected function _fetchOptions() {
         $options = array();
-        if (isset($this->request->data->query['filters'])) {
-            $options['conditions'][] = $this->request->data->query['filters'];
+        if (isset($this->request->query['filters'])) {
+            $options['conditions'][] = $this->request->query['filters'];
         }
         return $options;
+    }
+
+    protected function _restPaginate() {
+        $conds = array();
+        if (isset($this->request->query['filters'])) {
+            $conds = $this->request->query['filters'];
+        }
+        $this->Paginator->settings['paramType'] = 'querystring';
+        $out['data'] = $this->paginate($this->modelClass, $conds);
+
+        if (!isset($this->request->params['paging']) || empty($this->request->params['paging'][$this->modelClass])) {
+            throw new CakeException('Pas de paramètres de pagination');
+        }
+
+        $out['paging'] = $this->request->params['paging'][$this->modelClass];
+        
+        return $out;
     }
     
     protected function _delete($id) {
