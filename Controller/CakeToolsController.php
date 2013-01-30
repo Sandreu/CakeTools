@@ -117,6 +117,7 @@ class CakeToolsController extends Controller {
         $default = array(
             'post'=>true,
             'put'=>true,
+            'patch' => true,
             'delete'=>true,
             'get' => true,
             'fetch' => false,
@@ -132,7 +133,8 @@ class CakeToolsController extends Controller {
         $this->response->type('json');
 
         if ($this->request->is('post') && $options['post'] || 
-            $this->request->is('put')  && $options['put']) {
+            $this->request->is('put')  && $options['put'] || 
+            $this->request->is('patch')  && $options['patch']) {
             $datas = $this->{$model}->save($this->data);
             if (!empty($datas)) {
                 $this->json['data'] = $datas;
