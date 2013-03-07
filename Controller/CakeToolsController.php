@@ -138,8 +138,11 @@ class CakeToolsController extends Controller {
             $this->request->is('put')  && $options['put'] || 
             $this->request->is('patch')  && $options['patch']) {
 
-            if ($id && !isset($this->data['id'])) $this->request->data('id', $id);
-
+            if ($this->request->is('patch')) {
+                $this->data = json_decode($this->request->input(), true);
+                if ($id && !isset($this->data['id'])) $this->request->data('id', $id);
+            }
+            
             $datas = $this->{$model}->save($this->data);
             if (!empty($datas)) {
                 $this->json['data'] = $datas;
